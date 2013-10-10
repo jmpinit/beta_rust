@@ -132,6 +132,13 @@ impl Beta {
 		println(fmt!("fn \"%?\"", exp));
 	}
 
+	fn exec_op_lit(&mut self, data: u32, exp: &fn(a: u32, b: u32) -> u32) {
+		let (r_c, r_a, lit) = Beta::args_literal(data);
+		let a = self.read_reg(r_a as uint);
+		self.write_reg(r_c as uint, exp(a, lit));
+		println(fmt!("fn \"%?\"", exp));
+	}
+
 	/* INSTRUCTION SET */
 
 	fn add(&mut self, data: u32) {
@@ -139,15 +146,26 @@ impl Beta {
 	}
 	
 	fn addc(&mut self, data: u32) {
+		self.exec_op_lit(data, |a, b| a + b);
 	}
 	
 	fn and(&mut self, data: u32) {
+		self.exec_op(data, |a, b| a & b);
 	}
 
 	fn andc(&mut self, data: u32) {
+		self.exec_op_lit(data, |a, b| a & b);
 	}
 	
 	fn beq(&mut self, data: u32) {
+		let (r_c, r_a, lit) = Beta::args_literal(data);
+		let a = self.read_reg(r_a as uint);
+
+		self.write_reg(r_c as uint, self.pc + 4);
+		let displacement = ((lit as i32)*4) as u32;
+		let target = self.pc + 4 + displacement;
+
+		if(a == 0) { self.pc = target; }
 	}
 	
 	fn bne(&mut self, data: u32) {
