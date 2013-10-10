@@ -1,3 +1,45 @@
+macro_rules! decode_op(
+	($op:ident $handler:ident $data:ident) => (
+		match $op {
+			0x20 => $handler.add($data),
+			0x30 => $handler.addc($data),
+			0x28 => $handler.and($data),
+			0x38 => $handler.andc($data),
+			0x1C => $handler.beq($data),
+			0x1D => $handler.bne($data),
+			0x24 => $handler.cmpeq($data),
+			0x34 => $handler.cmpeqc($data),
+			0x26 => $handler.cmple($data),
+			0x36 => $handler.cmplec($data),
+			0x25 => $handler.cmplt($data),
+			0x35 => $handler.cmpltc($data),
+			0x23 => $handler.div($data),
+			0x33 => $handler.divc($data),
+			0x1B => $handler.jmp($data),
+			0x18 => $handler.ld($data),
+			0x1F => $handler.ldr($data),
+			0x22 => $handler.mul($data),
+			0x32 => $handler.mulc($data),
+			0x29 => $handler.or($data),
+			0x39 => $handler.orc($data),
+			0x2C => $handler.shl($data),
+			0x3C => $handler.shlc($data),
+			0x2D => $handler.shr($data),
+			0x3D => $handler.shrc($data),
+			0x2E => $handler.sra($data),
+			0x3E => $handler.srac($data),
+			0x21 => $handler.sub($data),
+			0x31 => $handler.subc($data),
+			0x19 => $handler.st($data),
+			0x2A => $handler.xor($data),
+			0x3A => $handler.xorc($data),
+			0x2B => $handler.xnor($data),
+			0x3B => $handler.xnorc($data),
+			_ => fail!("Unrecognized opcode.")
+		}
+)
+)
+
 fn each(v: &mut [u32], op: &fn(v: &mut u32)) {
 	let mut n = 0;
 	while n < v.len() {
@@ -48,51 +90,152 @@ impl Beta {
 
 		// decode invariant part of instruction format
 		let op = instruction >> 26;
-		let r_c = instruction >> 21;
-		let r_a = instruction >> 16;
+		let data = instruction & 0x3FFFFFFF;
 
 		println(fmt!("op: %d", op as int));
 
-		match op {
-			0x20 => println("ADD"),
-			0x30 => println("ADDC"),
-			0x28 => println("AND"),
-			0x38 => println("ANDC"),
-			0x1C => println("BEQ"),
-			0x1D => println("BNE"),
-			0x24 => println("CMPEQ"),
-			0x34 => println("CMPEQC"),
-			0x26 => println("CMPLE"),
-			0x36 => println("CMPLEC"),
-			0x25 => println("CMPLT"),
-			0x35 => println("CMPLTC"),
-			0x23 => println("DIV"),
-			0x33 => println("DIVC"),
-			0x1B => println("JMP"),
-			0x18 => println("LD"),
-			0x1F => println("LDR"),
-			0x22 => println("MUL"),
-			0x32 => println("MULC"),
-			0x29 => println("OR"),
-			0x39 => println("ORC"),
-			0x2C => println("SHL"),
-			0x3C => println("SHLC"),
-			0x2D => println("SHR"),
-			0x3D => println("SHRC"),
-			0x2E => println("SRA"),
-			0x3E => println("SRAC"),
-			0x21 => println("SUB"),
-			0x31 => println("SUBC"),
-			0x19 => println("ST"),
-			0x2A => println("XOR"),
-			0x3A => println("XORC"),
-			0x2B => println("XNOR"),
-			0x3B => println("XNORC"),
-			_ => fail!("Unrecognized opcode.")
-		}
+		decode_op!(op self data)
 
 		self.pc += 4;
 		//println(fmt!("tick. pc at %d", self.pc as int));
+	}
+
+	/* INSTRUCTION SET */
+	
+	fn add(&mut self, data: u32) {
+		println(fmt!("data: %d", data as int));
+	}
+	
+	fn addc(&mut self, data: u32) {
+		println(fmt!("data: %d", data as int));
+	}
+	
+	fn and(&mut self, data: u32) {
+		println(fmt!("data: %d", data as int));
+	}
+
+	fn andc(&mut self, data: u32) {
+		println(fmt!("data: %d", data as int));
+	}
+	
+	fn beq(&mut self, data: u32) {
+		println(fmt!("data: %d", data as int));
+	}
+	
+	fn bne(&mut self, data: u32) {
+		println(fmt!("data: %d", data as int));
+	}
+	
+	fn cmpeq(&mut self, data: u32) {
+		println(fmt!("data: %d", data as int));
+	}
+	
+	fn cmpeqc(&mut self, data: u32) {
+		println(fmt!("data: %d", data as int));
+	}
+	
+	fn cmple(&mut self, data: u32) {
+		println(fmt!("data: %d", data as int));
+	}
+	
+	fn cmplec(&mut self, data: u32) {
+		println(fmt!("data: %d", data as int));
+	}
+	
+	fn cmplt(&mut self, data: u32) {
+		println(fmt!("data: %d", data as int));
+	}
+	
+	fn cmpltc(&mut self, data: u32) {
+		println(fmt!("data: %d", data as int));
+	}
+	
+	fn div(&mut self, data: u32) {
+		println(fmt!("data: %d", data as int));
+	}
+	
+	fn divc(&mut self, data: u32) {
+		println(fmt!("data: %d", data as int));
+	}
+	
+	fn jmp(&mut self, data: u32) {
+		println(fmt!("data: %d", data as int));
+	}
+	
+	fn ld(&mut self, data: u32) {
+		println(fmt!("data: %d", data as int));
+	}
+	
+	fn ldr(&mut self, data: u32) {
+		println(fmt!("data: %d", data as int));
+	}
+	
+	fn mul(&mut self, data: u32) {
+		println(fmt!("data: %d", data as int));
+	}
+	
+	fn mulc(&mut self, data: u32) {
+		println(fmt!("data: %d", data as int));
+	}
+	
+	fn or(&mut self, data: u32) {
+		println(fmt!("data: %d", data as int));
+	}
+	
+	fn orc(&mut self, data: u32) {
+		println(fmt!("data: %d", data as int));
+	}
+	
+	fn shl(&mut self, data: u32) {
+		println(fmt!("data: %d", data as int));
+	}
+	
+	fn shlc(&mut self, data: u32) {
+		println(fmt!("data: %d", data as int));
+	}
+	
+	fn shr(&mut self, data: u32) {
+		println(fmt!("data: %d", data as int));
+	}
+	
+	fn shrc(&mut self, data: u32) {
+		println(fmt!("data: %d", data as int));
+	}
+	
+	fn sra(&mut self, data: u32) {
+		println(fmt!("data: %d", data as int));
+	}
+	
+	fn srac(&mut self, data: u32) {
+		println(fmt!("data: %d", data as int));
+	}
+	
+	fn sub(&mut self, data: u32) {
+		println(fmt!("data: %d", data as int));
+	}
+	
+	fn subc(&mut self, data: u32) {
+		println(fmt!("data: %d", data as int));
+	}
+	
+	fn st(&mut self, data: u32) {
+		println(fmt!("data: %d", data as int));
+	}
+	
+	fn xor(&mut self, data: u32) {
+		println(fmt!("data: %d", data as int));
+	}
+	
+	fn xorc(&mut self, data: u32) {
+		println(fmt!("data: %d", data as int));
+	}
+	
+	fn xnor(&mut self, data: u32) {
+		println(fmt!("data: %d", data as int));
+	}
+	
+	fn xnorc(&mut self, data: u32) {
+		println(fmt!("data: %d", data as int));
 	}
 }
 
