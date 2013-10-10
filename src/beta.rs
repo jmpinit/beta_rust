@@ -20,9 +20,9 @@ impl Beta {
 		//println(fmt!("reset. pc at %d", self.pc as int));
 	}
 
-	fn tick(&self) {
+	fn tick(&mut self) {
+		self.pc += 4;
 		//println(fmt!("tick. pc at %d", self.pc as int));
-
 	}
 }
 
