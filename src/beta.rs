@@ -162,7 +162,7 @@ impl Beta {
 		let a = self.read_reg(r_a as uint);
 
 		self.write_reg(r_c as uint, self.pc + 4);
-		let displacement = ((lit as i32)*4) as u32;
+		let displacement = (lit as i16 as u32)*4;
 		let target = self.pc + 4 + displacement;
 
 		if(a == 0) { self.pc = target; }
@@ -173,7 +173,7 @@ impl Beta {
 		let a = self.read_reg(r_a as uint);
 
 		self.write_reg(r_c as uint, self.pc + 4);
-		let displacement = ((lit as i32)*4) as u32;
+		let displacement = (lit as i16 as u32)*4;
 		let target = self.pc + 4 + displacement;
 
 		if(a != 0) { self.pc = target; }
