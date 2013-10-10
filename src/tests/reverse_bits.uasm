@@ -1,0 +1,24 @@
+.include /mit/6.004/bsim/beta.uasm 
+
+. = 0	| start assembling at location 0 
+	LD(input,r0)	| put argument in r0 
+	CALL(bitrev)	| call the procedure (= BR(bitrev,r28)) 
+
+	HALT() 
+
+| reverse the bits in r0, leave result in r1 
+bitrev: 
+	CMOVE(32,r2)	| loop counter 
+	CMOVE(0,r1)		| clear output register 
+loop: 
+	ANDC(r0,1,r3)	| get low-order bit 
+	SHLC(r1,1,r1)	| shift output word by 1 
+	OR(r3,r1,r1)	| OR in new low-order bit 
+	SHRC(r0,1,r0)	| done with this input bit 
+	SUBC(r2,1,r2)	| decrement loop counter 
+	BNE(r2,loop)	| repeat until done 
+
+	RTN()			| return to caller  (= JMP(r28)) 
+
+input: 
+	LONG(0x12345)	| 32-bit input (in HEX)
