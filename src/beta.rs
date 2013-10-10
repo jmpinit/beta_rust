@@ -219,11 +219,22 @@ impl Beta {
 	}
 	
 	fn ld(&mut self, data: u32) {
-		println(fmt!("data: %d", data as int));
+		let (r_c, r_a, lit) = Beta::args_literal(data);
+		let a = self.read_reg(r_a as uint);
+		let value = self.mem.read_word(a + lit);
+		self.write_reg(r_c as uint, value);
 	}
 	
 	fn ldr(&mut self, data: u32) {
-		println(fmt!("data: %d", data as int));
+		let (r_c, r_a, lit) = Beta::args_literal(data);
+		let a = self.read_reg(r_a as uint);
+
+		let ea = (self.pc & 0x7FFFFFFF) + 4 + (lit as i16 as u32)*4;
+		let memval = self.mem.read_word(ea);
+
+		self.write_reg(r_c as uint, memval);
+
+		if(a != 0b11111) { warn!("\"The Ra field is ignored and should be 11111.\" It is not."); }
 	}
 	
 	fn mul(&mut self, data: u32) {
