@@ -46,6 +46,51 @@ impl Beta {
 	fn tick(&mut self) {
 		let instruction: u32 = self.mem.read_word(self.pc);
 
+		// decode invariant part of instruction format
+		let op = instruction >> 26;
+		let r_c = instruction >> 21;
+		let r_a = instruction >> 16;
+
+		println(fmt!("op: %d", op as int));
+
+		match op {
+			0x20 => println("ADD"),
+			0x30 => println("ADDC"),
+			0x28 => println("AND"),
+			0x38 => println("ANDC"),
+			0x1C => println("BEQ"),
+			0x1D => println("BNE"),
+			0x24 => println("CMPEQ"),
+			0x34 => println("CMPEQC"),
+			0x26 => println("CMPLE"),
+			0x36 => println("CMPLEC"),
+			0x25 => println("CMPLT"),
+			0x35 => println("CMPLTC"),
+			0x23 => println("DIV"),
+			0x33 => println("DIVC"),
+			0x1B => println("JMP"),
+			0x18 => println("LD"),
+			0x1F => println("LDR"),
+			0x22 => println("MUL"),
+			0x32 => println("MULC"),
+			0x29 => println("OR"),
+			0x39 => println("ORC"),
+			0x2C => println("SHL"),
+			0x3C => println("SHLC"),
+			0x2D => println("SHR"),
+			0x3D => println("SHRC"),
+			0x2E => println("SRA"),
+			0x3E => println("SRAC"),
+			0x21 => println("SUB"),
+			0x31 => println("SUBC"),
+			0x19 => println("ST"),
+			0x2A => println("XOR"),
+			0x3A => println("XORC"),
+			0x2B => println("XNOR"),
+			0x3B => println("XNORC"),
+			_ => fail!("Unrecognized opcode.")
+		}
+
 		self.pc += 4;
 		//println(fmt!("tick. pc at %d", self.pc as int));
 	}
