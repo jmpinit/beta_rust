@@ -212,7 +212,10 @@ impl Beta {
 	}
 	
 	fn jmp(&mut self, data: u32) {
-		println(fmt!("data: %d", data as int));
+		let (r_c, r_a, _lit) = Beta::args_literal(data);
+
+		self.write_reg(r_c as uint, self.pc + 4);
+		self.pc = self.read_reg(r_a as uint) & 0xFFFFFFFC;
 	}
 	
 	fn ld(&mut self, data: u32) {
