@@ -57,7 +57,7 @@ impl Mem {
 		self.data[addr]
 	}
 
-	fn read_word(&self, addr: u32) -> u32 {
+	fn read_u32(&self, addr: u32) -> u32 {
 		let b1 = self.read(addr) as u32;
 		let b2 = self.read(addr + 1) as u32;
 		let b3 = self.read(addr + 2) as u32;
@@ -68,6 +68,13 @@ impl Mem {
 
 	fn write(&mut self, addr: u32, val: u8) {
 		self.data[addr] = val;
+	}
+
+	fn write_u32(&mut self, addr: u32, val: u32) {
+		self.data[addr]		= (val >> 24 & 0xFF) as u8;
+		self.data[addr + 1]	= (val >> 16 & 0xFF) as u8;
+		self.data[addr + 2]	= (val >> 8 & 0xFF) as u8;
+		self.data[addr + 3]	= (val & 0xFF) as u8;
 	}
 }
 
@@ -86,7 +93,7 @@ impl Beta {
 	}
 
 	fn tick(&mut self) {
-		let instruction: u32 = self.mem.read_word(self.pc);
+		let instruction: u32 = self.mem.read_u32(self.pc);
 
 		// decode invariant part of instruction format
 		let op = instruction >> 26;
@@ -221,8 +228,11 @@ impl Beta {
 	fn ld(&mut self, data: u32) {
 		let (r_c, r_a, lit) = Beta::args_literal(data);
 		let a = self.read_reg(r_a as uint);
-		let value = self.mem.read_word(a + lit);
-		self.write_reg(r_c as uint, value);
+
+		let ea = a + (lit as i16 as u32);
+		let val = self.mem.read_u32(ea as u32);
+
+		self.write_reg(r_c as uint, val)
 	}
 	
 	fn ldr(&mut self, data: u32) {
@@ -230,7 +240,7 @@ impl Beta {
 		let a = self.read_reg(r_a as uint);
 
 		let ea = (self.pc & 0x7FFFFFFF) + 4 + (lit as i16 as u32)*4;
-		let memval = self.mem.read_word(ea);
+		let memval = self.mem.read_u32(ea);
 
 		self.write_reg(r_c as uint, memval);
 
@@ -286,23 +296,29 @@ impl Beta {
 	}
 	
 	fn st(&mut self, data: u32) {
-		println(fmt!("data: %d", data as int));
+		let (r_c, r_a, lit) = Beta::args_literal(data);
+		let a = self.read_reg(r_a as uint);
+		let c = self.read_reg(r_c as uint);
+
+		let ea = a + (lit as i16 as u32);
+
+		self.mem.write_u32(ea, c)
 	}
 	
 	fn xor(&mut self, data: u32) {
-		println(fmt!("data: %d", data as int));
+		self.exec_op(data, |a, b| a^b);
 	}
 	
 	fn xorc(&mut self, data: u32) {
-		println(fmt!("data: %d", data as int));
+		self.exec_op_lit(data, |a, b| a^b);
 	}
 	
 	fn xnor(&mut self, data: u32) {
-		println(fmt!("data: %d", data as int));
+		self.exec_op(data, |a, b| !(a^b));
 	}
 	
 	fn xnorc(&mut self, data: u32) {
-		println(fmt!("data: %d", data as int));
+		self.exec_op_lit(data, |a, b| !(a^b));
 	}
 }
 
