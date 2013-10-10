@@ -238,51 +238,51 @@ impl Beta {
 	}
 	
 	fn mul(&mut self, data: u32) {
-		println(fmt!("data: %d", data as int));
+		self.exec_op(data, |a, b| a*b)
 	}
 	
 	fn mulc(&mut self, data: u32) {
-		println(fmt!("data: %d", data as int));
+		self.exec_op_lit(data, |a, b| a*b)
 	}
 	
 	fn or(&mut self, data: u32) {
-		println(fmt!("data: %d", data as int));
+		self.exec_op(data, |a, b| a|b)
 	}
 	
 	fn orc(&mut self, data: u32) {
-		println(fmt!("data: %d", data as int));
+		self.exec_op_lit(data, |a, b| a|b)
 	}
 	
 	fn shl(&mut self, data: u32) {
-		println(fmt!("data: %d", data as int));
+		self.exec_op(data, |a, b| a << b)
 	}
 	
 	fn shlc(&mut self, data: u32) {
-		println(fmt!("data: %d", data as int));
+		self.exec_op_lit(data, |a, b| a << b)
 	}
 	
 	fn shr(&mut self, data: u32) {
-		println(fmt!("data: %d", data as int));
+		self.exec_op(data, |a, b| a >> b)
 	}
 	
 	fn shrc(&mut self, data: u32) {
-		println(fmt!("data: %d", data as int));
+		self.exec_op_lit(data, |a, b| a >> b)
 	}
 	
 	fn sra(&mut self, data: u32) {
-		println(fmt!("data: %d", data as int));
+		self.exec_op(data, |a, b| ((a as i32) >> b) as u32)
 	}
 	
 	fn srac(&mut self, data: u32) {
-		println(fmt!("data: %d", data as int));
+		self.exec_op_lit(data, |a, b| ((a as i32) >> b) as u32)
 	}
 	
 	fn sub(&mut self, data: u32) {
-		println(fmt!("data: %d", data as int));
+		self.exec_op(data, |a, b| a - b)
 	}
 	
 	fn subc(&mut self, data: u32) {
-		println(fmt!("data: %d", data as int));
+		self.exec_op_lit(data, |a, b| a - b)
 	}
 	
 	fn st(&mut self, data: u32) {
