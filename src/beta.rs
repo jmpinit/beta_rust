@@ -100,10 +100,38 @@ impl Beta {
 		//println(fmt!("tick. pc at %d", self.pc as int));
 	}
 
+	fn read_reg(&self, reg: uint) -> u32 {
+		match reg {
+			0..30	=> self.register[reg],
+			31		=> 0,
+			_		=> fail!(fmt!("tried to read from nonexistant register %d", reg as int))
+		}
+	}
+
+	fn write_reg(&mut self, reg: uint, val: u32) {
+		match reg {
+			0..30	=> self.register[reg] = val,
+			31		=> {},
+			_		=> fail!(fmt!("tried to write to nonexistant register %d", reg as int))
+		};
+	}
+
+	fn args(data: u32) -> (u32, u32, u32) {
+		(data >> 21, data >> 16, data >> 11)
+	}
+
+	fn args_literal(data: u32) -> (u32, u32, u32) {
+		(data >> 21, data >> 16, data & 0xFFFF)
+	}
+
 	/* INSTRUCTION SET */
 	
 	fn add(&mut self, data: u32) {
-		println(fmt!("data: %d", data as int));
+		let (r_c, r_a, r_b) = Beta::args(data);
+		let a = self.read_reg(r_a as uint);
+		let b = self.read_reg(r_b as uint);
+		self.write_reg(r_c as uint, a + b);
+		println(fmt!("ADD %d, %d, %d", r_c as int, r_a as int, r_b as int));
 	}
 	
 	fn addc(&mut self, data: u32) {
