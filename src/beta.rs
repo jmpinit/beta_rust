@@ -124,30 +124,30 @@ impl Beta {
 		(data >> 21, data >> 16, data & 0xFFFF)
 	}
 
-	/* INSTRUCTION SET */
-	
-	fn add(&mut self, data: u32) {
+	fn exec_op(&mut self, data: u32, exp: &fn(a: u32, b: u32) -> u32) {
 		let (r_c, r_a, r_b) = Beta::args(data);
 		let a = self.read_reg(r_a as uint);
 		let b = self.read_reg(r_b as uint);
-		self.write_reg(r_c as uint, a + b);
-		println(fmt!("ADD %d, %d, %d", r_c as int, r_a as int, r_b as int));
+		self.write_reg(r_c as uint, exp(a, b));
+		println(fmt!("fn \"%?\"", exp));
+	}
+
+	/* INSTRUCTION SET */
+
+	fn add(&mut self, data: u32) {
+		self.exec_op(data, |a, b| a + b);
 	}
 	
 	fn addc(&mut self, data: u32) {
-		println(fmt!("data: %d", data as int));
 	}
 	
 	fn and(&mut self, data: u32) {
-		println(fmt!("data: %d", data as int));
 	}
 
 	fn andc(&mut self, data: u32) {
-		println(fmt!("data: %d", data as int));
 	}
 	
 	fn beq(&mut self, data: u32) {
-		println(fmt!("data: %d", data as int));
 	}
 	
 	fn bne(&mut self, data: u32) {
