@@ -169,39 +169,46 @@ impl Beta {
 	}
 	
 	fn bne(&mut self, data: u32) {
-		println(fmt!("data: %d", data as int));
+		let (r_c, r_a, lit) = Beta::args_literal(data);
+		let a = self.read_reg(r_a as uint);
+
+		self.write_reg(r_c as uint, self.pc + 4);
+		let displacement = ((lit as i32)*4) as u32;
+		let target = self.pc + 4 + displacement;
+
+		if(a != 0) { self.pc = target; }
 	}
 	
 	fn cmpeq(&mut self, data: u32) {
-		println(fmt!("data: %d", data as int));
+		self.exec_op(data, |a, b| if(a == b) {1} else {0});
 	}
 	
 	fn cmpeqc(&mut self, data: u32) {
-		println(fmt!("data: %d", data as int));
+		self.exec_op_lit(data, |a, b| if(a == b) {1} else {0});
 	}
 	
 	fn cmple(&mut self, data: u32) {
-		println(fmt!("data: %d", data as int));
+		self.exec_op(data, |a, b| if(a <= b) {1} else {0});
 	}
 	
 	fn cmplec(&mut self, data: u32) {
-		println(fmt!("data: %d", data as int));
+		self.exec_op_lit(data, |a, b| if(a <= b) {1} else {0});
 	}
 	
 	fn cmplt(&mut self, data: u32) {
-		println(fmt!("data: %d", data as int));
+		self.exec_op(data, |a, b| if(a < b) {1} else {0});
 	}
 	
 	fn cmpltc(&mut self, data: u32) {
-		println(fmt!("data: %d", data as int));
+		self.exec_op_lit(data, |a, b| if(a < b) {1} else {0});
 	}
 	
 	fn div(&mut self, data: u32) {
-		println(fmt!("data: %d", data as int));
+		self.exec_op(data, |a, b| a / b);
 	}
 	
 	fn divc(&mut self, data: u32) {
-		println(fmt!("data: %d", data as int));
+		self.exec_op_lit(data, |a, b| a / b);
 	}
 	
 	fn jmp(&mut self, data: u32) {
