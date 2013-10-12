@@ -1,3 +1,5 @@
+#!/usr/bin/python
+
 import sys
 import re
 from termcolor import colored
@@ -35,13 +37,13 @@ if len(sys.argv) == 2:  # check for filename argument
 					try:
 						value = eval(expression)
 					except:
-						error("Malformed expression")
+						error("Malformed expression.")
 
 				print "ALIGN", (value)
 			elif directive == "ascii":
-				print "ASCII"
+				error("Unimplemented directive.")
 			elif directive == "text":
-				print "TEXT"
+				error("Unimplemented directive.")
 			elif directive == "macro":
 				m = re.search(
 					r"\.macro\s?" + 
@@ -60,9 +62,9 @@ if len(sys.argv) == 2:  # check for filename argument
 
 					#print "MACRO", (name, args, value)
 				else:
-					error("Malformed macro")
+					error("Malformed macro.")
 			else:
-				error("Unrecognized directive" + directive)
+				error("Unrecognized directive." + directive)
 
 else:
     print "usage: ./uasm.py <source file>"
