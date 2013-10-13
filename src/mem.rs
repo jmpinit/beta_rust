@@ -15,8 +15,12 @@ impl Mem {
 		let b2 = self.read(addr + 1) as u32;
 		let b3 = self.read(addr + 2) as u32;
 		let b4 = self.read(addr + 3) as u32;
+		
+		let val = (b1 << 24) | (b2 << 16) | (b3 << 8) | b4;
 
-		(b1 << 24) | (b2 << 16) | (b3 << 8) | b4
+		//println(fmt!("READ: %x @ %x", val as uint, addr as uint));
+
+		return val;
 	}
 
 	pub fn write(&mut self, addr: Address, val: u8) {

@@ -45,8 +45,6 @@ fn main() {
 			b.tick();
 			count += 1;
 		}
-
-		b.dump_registers();
 	} else {
 		println("usage: emu <input file>");
 	}

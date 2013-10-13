@@ -1,4 +1,5 @@
 use std::vec;
+use std::iter::Range;
 use mem::{Mem, Word, Address};
 
 type Literal = i16;
@@ -15,7 +16,7 @@ trait Decodeable {
 }
 
 impl Decodeable for Instruction {
-	fn literal(&self) -> Literal { 0 as Literal }
+	fn literal(&self) -> Literal { (*self & 0xFFFF) as Literal }
 	fn opcode(&self) -> u32 { *self as u32 >> 26 }
 
 	fn destination(&self) -> Reg {
@@ -77,6 +78,8 @@ impl Beta {
 			let instruction = self.mem.read_word(self.pc);
 			self.execute(instruction);
 			self.pc += 4;
+			self.dump_registers(range(0, 4));
+			println("");
 		}
 	}
 
@@ -87,9 +90,9 @@ impl Beta {
 			let (r_c, r_a, _) = instruction.registers();
 
 			self.write_reg(r_c, exp(a, b as Word));
+			println(fmt!("OP: %x <> %x = %x", a as uint, b as uint, exp(a, b as Word) as uint));
 
-			// debug
-			//println(fmt!("%s\t%x, %x, %x", name, r_c as uint, r_a as uint, instruction.literal() as uint));
+			Beta::dump_instruction_c(name, r_c, r_a, b);
 		};
 
 		let op = |name: &str, exp: &fn(a: Word, b: Word) -> Word| {
@@ -98,14 +101,11 @@ impl Beta {
 
 			self.write_reg(r_c, exp(a, b));
 
-			// debug
-			//println(fmt!("%s\t%x, %x, %x", name, r_c as uint, r_a as uint, r_b as uint));
+			Beta::dump_instruction(name, r_c, r_a, r_b);
 		};
 
-		//print(fmt!("%x: ", instruction as uint));
-
 		match instruction.opcode() {
-			0x00 => { self.halted = true }
+			0x00 => { self.halted = true; println("HALT!"); }
 
 			// arithmetic
 			0x20 => { op("add",		|a, b| a + b); }
@@ -128,9 +128,9 @@ impl Beta {
 			0x2E => { op("sra",		|a, b| a >> b); } // FIXME (correct sign?)
 			// -- constant
 			0x38 => { op_c("andc", 	|a, b| a & b); }
-			0x39 => { op_c("orc",	|a, b| a|b); }
-			0x3A => { op_c("xorc",	|a, b| a^b); }
-			0x3B => { op_c("xnorc",	|a, b| !(a^b)); }
+			0x39 => { op_c("orc",	|a, b| a | b); }
+			0x3A => { op_c("xorc",	|a, b| a ^ b); }
+			0x3B => { op_c("xnorc",	|a, b| !(a ^ b)); }
 			0x3C => { op_c("shlc",	|a, b| a << b); }
 			0x3D => { op_c("shrc",	|a, b| a >> b); }
 			0x3E => { op_c("srac",	|a, b| a >> b); }	// FIXME (correct sign?)
@@ -147,10 +147,11 @@ impl Beta {
 			// branch
 			0x1B => {
 				let (r_c, r_a, _) = instruction.registers();
-				//println(fmt!("jmp %x, %x", r_c as uint, r_a as uint));
 
 				self.write_reg(r_c, self.pc + 4);
 				self.pc = (self.read_reg(r_a ) - 4) & 0xFFFFFFFC;
+
+				Beta::dump_instruction("jmp", r_c, r_a, 0xFF);
 			}
 			0x1C => {
 				let (r_c, r_a, _) = instruction.registers();
@@ -163,11 +164,12 @@ impl Beta {
 				let target = self.pc + displacement;
 
 				if(a == 0) { self.pc = target; }
+				
+				Beta::dump_instruction_c("beq", r_c, r_a, lit);
 			}
 			0x1D => {
 				let (r_c, r_a, _) = instruction.registers();
 				let lit = instruction.literal();
-				//println(fmt!("bne %x, %x, %x", r_c as uint, r_a as uint, lit as uint));
 				let a = self.read_reg(r_a);
 
 				self.write_reg(r_c, self.pc + 4);
@@ -176,6 +178,7 @@ impl Beta {
 
 				if(a != 0) { self.pc = target; }
 
+				Beta::dump_instruction_c("bne", r_c, r_a, lit);
 			}
 
 			// memory io
@@ -183,19 +186,18 @@ impl Beta {
 				let (r_c, r_a, _) = instruction.registers();
 				let lit = instruction.literal();
 
-				//println(fmt!("ld %x, %x, %x", r_c as uint, r_a as uint, lit as uint));
-
 				let a = self.read_reg(r_a);
 
-				let ea = a + lit as Word;
-				let val = self.mem.read_word(ea);
+				let val = self.mem.read_word(a + (lit as Word));
 
-				self.write_reg(r_c, val)
+				self.write_reg(r_c, val);
+
+				Beta::dump_instruction_c("ld", r_c, r_a, lit);
 			}
+
 			0x1F => {
 				let (r_c, r_a, _) = instruction.registers();
 				let lit = instruction.literal();
-				//println(fmt!("ldr %x, %x, %x", r_c as uint, r_a as uint, lit as uint));
 				let a = self.read_reg(r_a);
 
 				let ea = (self.pc & 0x7FFFFFFF) + (lit*4) as Word;
@@ -204,7 +206,10 @@ impl Beta {
 				self.write_reg(r_c, memval);
 
 				if(a != 0b11111) { warn!("\"The Ra field is ignored and should be 11111.\" It is not."); }
+				
+				Beta::dump_instruction_c("ldr", r_c, r_a, lit);
 			}
+			
 			0x19 => {
 				let (r_c, r_a, _) = instruction.registers();
 				let lit = instruction.literal();
@@ -213,8 +218,9 @@ impl Beta {
 
 				let ea = a + lit as Word;
 
-				self.mem.write_word(ea, c)
+				self.mem.write_word(ea, c);
 
+				Beta::dump_instruction_c("st", r_c, r_a, lit);
 			}
 			_ => fail!("Unrecognized opcode.")
 		}
@@ -222,13 +228,31 @@ impl Beta {
 
 	/* DEBUG */
 
-	pub fn dump_registers(&self) {
-		for i in range(0, self.register.len()) {
-			println(fmt!("r%d = %x", i as int, self.register[i] as uint));
-		}
+	fn dump_instruction(name: &str, dest: Reg, r_a: Reg, r_b: Reg) {
+		println(fmt!("%s\t%x, %x, %x", name, dest as uint, r_a as uint, r_b as uint));
 	}
 
-	fn dump(&self) {
+	fn dump_instruction_c(name: &str, dest: Reg, r_a: Reg, lit: Literal) {
+		println(fmt!("%s\t%x, %x, %d(%x)", name, dest as uint, r_a as uint, lit as int, lit as uint));
+	}
+
+	pub fn dump_registers(&self, range: Range<int>) {
+		//assert!(
+
+		for i in range.clone() {
+			print(fmt!("r%d\t|", i as int));
+		}
+
+		println("");
+
+		for i in range.clone() {
+			print(fmt!("%x\t", self.register[i] as uint));
+		}
+
+		println("");
+	}
+
+	fn dump_memory(&self) {
 		for i in range(0, self.mem.data.len()) {
 			print(fmt!("%x, ", self.mem.data[i] as uint));
 		}
@@ -238,7 +262,12 @@ impl Beta {
 
 	fn register_values(&self, instruction: Instruction) -> (Word, Word, Word) {
 		let (r_a, r_b, r_c) = instruction.registers();
-		(self.read_reg(r_c), self.read_reg(r_a), self.read_reg(r_b))
+
+		let c = self.read_reg(r_c);
+		let a = self.read_reg(r_a);
+		let b = self.read_reg(r_b);
+
+		return (a, b, c);
 	}
 
 	/* REGISTERS */
@@ -252,6 +281,8 @@ impl Beta {
 	}
 
 	fn write_reg(&mut self, reg: Reg, val: Word) {
+		println(fmt!("WRITE %d = %x", reg as int, val as uint));
+
 		match reg {
 			0..30	=> self.register[reg] = val,
 			31		=> {},
