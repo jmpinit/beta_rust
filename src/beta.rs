@@ -99,7 +99,7 @@ impl Beta {
 		let op = instruction >> 26;
 		let data = instruction & 0x3FFFFFFF;
 
-		println(fmt!("op: %d", op as int));
+		println(fmt!("op: 0x%x", op as uint));
 
 		decode_op!(op self data)
 
@@ -107,11 +107,17 @@ impl Beta {
 		//println(fmt!("tick. pc at %d", self.pc as int));
 	}
 
+	fn dump(&self) {
+		for i in range(0, self.mem.data.len()) {
+			print(fmt!("%x, ", self.mem.data[i] as uint));
+		}
+	}
+
 	fn read_reg(&self, reg: uint) -> u32 {
 		match reg {
 			0..30	=> self.register[reg],
 			31		=> 0,
-			_		=> fail!(fmt!("tried to read from nonexistant register %d", reg as int))
+			_		=> fail!(fmt!("tried to read from nonexistant register %d (0x%x)", reg as int, reg as uint))
 		}
 	}
 
@@ -124,11 +130,11 @@ impl Beta {
 	}
 
 	fn args(data: u32) -> (u32, u32, u32) {
-		(data >> 21, data >> 16, data >> 11)
+		(data >> 21 & 0x1F, data >> 16 & 0x1F, data >> 11)
 	}
 
 	fn args_literal(data: u32) -> (u32, u32, u32) {
-		(data >> 21, data >> 16, data & 0xFFFF)
+		(data >> 21 & 0x1F, data >> 16 & 0x1F, data & 0xFFFF)
 	}
 
 	fn exec_op(&mut self, data: u32, exp: &fn(a: u32, b: u32) -> u32) {

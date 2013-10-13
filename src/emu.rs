@@ -23,8 +23,8 @@ fn main() {
 	if args.len() == 2 {
 		// make a beta
 		let mut b = ~beta::Beta {
-			pc: 10u32,
-			register: [3u32, ..31],
+			pc: 0u32,
+			register: [0u32, ..31],
 			mem: beta::Mem {
 				data: [0u8, ..4*1024]
 			}
@@ -37,9 +37,8 @@ fn main() {
 		// put user data in beta
 		// beta is big endian, file is little endian
 		for i in range(0, filedata.len()) {
-			let pos = i/4 + (3-i%4);
+			let pos = i/4*4 + (3-i%4);
 			b.mem.write(pos as u32, filedata[i]);
-			print(fmt!("%x, ", filedata[i] as uint));
 		}
 
 		// start
