@@ -21,27 +21,31 @@ fn main() {
 	let args : ~[~str] = os::args();
 	
 	if args.len() == 2 {
+		// make a beta
+		let mut b = ~beta::Beta {
+			pc: 10u32,
+			register: [3u32, ..31],
+			mem: beta::Mem {
+				data: [0u8, ..4*1024]
+			}
+		};
+
+		// get user file
 		let filename = args[1];
 		let filedata = load(filename);
 
-		let mut i = 0;
-		while i < filedata.len() {
+		// put user data in beta
+		// beta is big endian, file is little endian
+		for i in range(0, filedata.len()) {
+			let pos = i/4 + (3-i%4);
+			b.mem.write(pos as u32, filedata[i]);
 			print(fmt!("%x, ", filedata[i] as uint));
-			i += 1;
 		}
+
+		// start
+		b.reset();
+		b.tick();
 	} else {
 		println("usage: emu <input file>");
 	}
-
-	let mut b = ~beta::Beta {
-		pc: 10u32,
-		register: [3u32, ..31],
-		mem: beta::Mem {
-			data: [0u8, ..4*1024]
-		}
-	};
-
-	b.reset();
-	b.tick();
-	println("success");
 }

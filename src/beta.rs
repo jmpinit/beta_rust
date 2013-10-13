@@ -48,7 +48,7 @@ fn each(v: &mut [u32], op: &fn(v: &mut u32)) {
 	}
 }
 
-struct Mem {
+pub struct Mem {
 	data:	[u8, ..4096]
 }
 
@@ -66,7 +66,7 @@ impl Mem {
 		(b1 << 24) | (b2 << 16) | (b3 << 8) | b4
 	}
 
-	fn write(&mut self, addr: u32, val: u8) {
+	pub fn write(&mut self, addr: u32, val: u8) {
 		self.data[addr] = val;
 	}
 
