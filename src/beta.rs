@@ -137,7 +137,7 @@ impl Beta {
 	}
 
 	fn args(data: u32) -> (u32, u32, u32) {
-		(data >> 21 & 0x1F, data >> 16 & 0x1F, data >> 11)
+		(data >> 21 & 0x1F, data >> 16 & 0x1F, data >> 11 & 0x1F)
 	}
 
 	fn args_literal(data: u32) -> (u32, u32, u32) {
