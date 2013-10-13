@@ -78,21 +78,21 @@ impl Mem {
 	}
 }
 
-struct Beta {
+pub struct Beta {
 	pc:			u32,
 	register:	[u32, ..31],
 	mem:		Mem
 }
 
 impl Beta {
-	fn reset(&mut self) {
+	pub fn reset(&mut self) {
 		self.pc = 0;
 		do each(self.register) |r| { *r = 0; }
 
 		//println(fmt!("reset. pc at %d", self.pc as int));
 	}
 
-	fn tick(&mut self) {
+	pub fn tick(&mut self) {
 		let instruction: u32 = self.mem.read_u32(self.pc);
 
 		// decode invariant part of instruction format
@@ -322,16 +322,3 @@ impl Beta {
 	}
 }
 
-fn main() {
-	let mut b = ~Beta {
-		pc: 10u32,
-		register: [3u32, ..31],
-		mem: Mem {
-			data: [0u8, ..4*1024]
-		}
-	};
-
-	b.reset();
-	b.tick();
-	println("success");
-}
