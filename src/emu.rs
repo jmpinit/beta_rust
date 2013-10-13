@@ -23,6 +23,7 @@ fn main() {
 	if args.len() == 2 {
 		// make a beta
 		let mut b = ~beta::Beta {
+			halted: false,
 			pc: 0u32,
 			register: [0u32, ..31],
 			mem: beta::Mem {
@@ -43,7 +44,14 @@ fn main() {
 
 		// start
 		b.reset();
-		b.tick();
+
+		let mut count = 0;
+		while count < 1000 {
+			b.tick();
+			count += 1;
+		}
+
+		b.dump_registers();
 	} else {
 		println("usage: emu <input file>");
 	}

@@ -1,6 +1,7 @@
 macro_rules! decode_op(
 	($op:ident $handler:ident $data:ident) => (
 		match $op {
+			0x00 => $handler.halt(),
 			0x20 => $handler.add($data),
 			0x30 => $handler.addc($data),
 			0x28 => $handler.and($data),
@@ -79,6 +80,7 @@ impl Mem {
 }
 
 pub struct Beta {
+	halted:		bool,
 	pc:			u32,
 	register:	[u32, ..31],
 	mem:		Mem
@@ -89,23 +91,27 @@ impl Beta {
 		self.pc = 0;
 		do each(self.register) |r| { *r = 0; }
 
+		self.halted = false;
+
 		//println(fmt!("reset. pc at %d", self.pc as int));
 	}
 
 	pub fn tick(&mut self) {
-		let instruction: u32 = self.mem.read_u32(self.pc);
+		if !self.halted {
+			let instruction: u32 = self.mem.read_u32(self.pc);
 
-		// decode invariant part of instruction format
-		let op = instruction >> 26;
-		let data = instruction & 0x3FFFFFFF;
+			// decode invariant part of instruction format
+			let op = instruction >> 26;
+			let data = instruction & 0x3FFFFFFF;
 
-		//println(fmt!("op: 0x%x", op as uint));
+			//println(fmt!("op: 0x%x", op as uint));
 
-		print(fmt!("%x: ", instruction as uint));
-		decode_op!(op self data)
+			print(fmt!("%x: ", instruction as uint));
+			decode_op!(op self data)
 
-		self.pc += 4;
-		//println(fmt!("tick. pc at %d", self.pc as int));
+			self.pc += 4;
+			//println(fmt!("tick. pc at %d", self.pc as int));
+		}
 	}
 
 	pub fn dump_registers(&self) {
@@ -160,6 +166,10 @@ impl Beta {
 	}
 
 	/* INSTRUCTION SET */
+
+	fn halt(&mut self) {
+		self.halted = true;
+	}
 
 	fn add(&mut self, data: u32) {
 		print("add ");
