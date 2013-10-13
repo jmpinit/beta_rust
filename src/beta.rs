@@ -1,83 +1,7 @@
-macro_rules! decode_op(
-	($op:ident $handler:ident $data:ident) => (
-		match $op {
-			0x00 => $handler.halt(),
-			0x20 => $handler.add($data),
-			0x30 => $handler.addc($data),
-			0x28 => $handler.and($data),
-			0x38 => $handler.andc($data),
-			0x1C => $handler.beq($data),
-			0x1D => $handler.bne($data),
-			0x24 => $handler.cmpeq($data),
-			0x34 => $handler.cmpeqc($data),
-			0x26 => $handler.cmple($data),
-			0x36 => $handler.cmplec($data),
-			0x25 => $handler.cmplt($data),
-			0x35 => $handler.cmpltc($data),
-			0x23 => $handler.div($data),
-			0x33 => $handler.divc($data),
-			0x1B => $handler.jmp($data),
-			0x18 => $handler.ld($data),
-			0x1F => $handler.ldr($data),
-			0x22 => $handler.mul($data),
-			0x32 => $handler.mulc($data),
-			0x29 => $handler.or($data),
-			0x39 => $handler.orc($data),
-			0x2C => $handler.shl($data),
-			0x3C => $handler.shlc($data),
-			0x2D => $handler.shr($data),
-			0x3D => $handler.shrc($data),
-			0x2E => $handler.sra($data),
-			0x3E => $handler.srac($data),
-			0x21 => $handler.sub($data),
-			0x31 => $handler.subc($data),
-			0x19 => $handler.st($data),
-			0x2A => $handler.xor($data),
-			0x3A => $handler.xorc($data),
-			0x2B => $handler.xnor($data),
-			0x3B => $handler.xnorc($data),
-			_ => fail!("Unrecognized opcode.")
-		}
-)
-)
+use std::vec;
+use mem::Mem;
 
-fn each(v: &mut [u32], op: &fn(v: &mut u32)) {
-	let mut n = 0;
-	while n < v.len() {
-		op(&mut v[n]);
-		n += 1;
-	}
-}
-
-pub struct Mem {
-	data:	[u8, ..4096]
-}
-
-impl Mem {
-	fn read(&self, addr: u32) -> u8 {
-		self.data[addr]
-	}
-
-	fn read_u32(&self, addr: u32) -> u32 {
-		let b1 = self.read(addr) as u32;
-		let b2 = self.read(addr + 1) as u32;
-		let b3 = self.read(addr + 2) as u32;
-		let b4 = self.read(addr + 3) as u32;
-
-		(b1 << 24) | (b2 << 16) | (b3 << 8) | b4
-	}
-
-	pub fn write(&mut self, addr: u32, val: u8) {
-		self.data[addr] = val;
-	}
-
-	fn write_u32(&mut self, addr: u32, val: u32) {
-		self.data[addr]		= (val >> 24 & 0xFF) as u8;
-		self.data[addr + 1]	= (val >> 16 & 0xFF) as u8;
-		self.data[addr + 2]	= (val >> 8 & 0xFF) as u8;
-		self.data[addr + 3]	= (val & 0xFF) as u8;
-	}
-}
+static MEM_SIZE: uint = 4*1024;
 
 pub struct Beta {
 	halted:		bool,
@@ -87,13 +11,30 @@ pub struct Beta {
 }
 
 impl Beta {
+	pub fn new(size: uint) -> ~Beta {
+		let new_data = vec::from_elem(size, 0u8);
+
+		~Beta {
+			halted: false,
+			pc: 0u32,
+			register: [0u32, ..31],
+			mem: Mem {
+				data: new_data
+			}
+		}
+	}
+
 	pub fn reset(&mut self) {
+		// clear registers
+		for i in range(0, self.register.len()) {
+			self.register[i] = 0;
+		}
+
+		// back to start
 		self.pc = 0;
-		do each(self.register) |r| { *r = 0; }
 
+		// start
 		self.halted = false;
-
-		//println(fmt!("reset. pc at %d", self.pc as int));
 	}
 
 	pub fn tick(&mut self) {
@@ -107,10 +48,65 @@ impl Beta {
 			//println(fmt!("op: 0x%x", op as uint));
 
 			print(fmt!("%x: ", instruction as uint));
-			decode_op!(op self data)
+			self.execute(op, data);
 
 			self.pc += 4;
 			//println(fmt!("tick. pc at %d", self.pc as int));
+		}
+	}
+
+	fn execute(&mut self, op: u32, data: u32) {
+		match op {
+			0x00 => { self.halted = true; } 
+
+			// arithmetic
+			0x20 => self.add(data),
+			0x21 => self.sub(data),
+			0x22 => self.mul(data),
+			0x23 => self.div(data),
+			// -- constant
+			0x30 => self.addc(data),
+			0x31 => self.subc(data),
+			0x32 => self.mulc(data),
+			0x33 => self.divc(data),
+
+			// logic
+			0x28 => self.and(data),
+			0x29 => self.or(data),
+			0x2A => self.xor(data),
+			0x2B => self.xnor(data),
+			0x2C => self.shl(data),
+			0x2D => self.shr(data),
+			0x2E => self.sra(data),
+			// -- constant
+			0x38 => self.andc(data),
+			0x39 => self.orc(data),
+			0x3A => self.xorc(data),
+			0x3B => self.xnorc(data),
+			0x3C => self.shlc(data),
+			0x3D => self.shrc(data),
+			0x3E => self.srac(data),
+
+			// compare
+			0x24 => self.cmpeq(data),
+			0x26 => self.cmple(data),
+			0x25 => self.cmplt(data),
+			// -- constant
+			0x34 => self.cmpeqc(data),
+			0x36 => self.cmplec(data),
+			0x35 => self.cmpltc(data),
+
+			// branch
+			0x1B => self.jmp(data),
+			0x1C => self.beq(data),
+			0x1D => self.bne(data),
+
+			// memory io
+			0x18 => self.ld(data),
+			0x1F => self.ldr(data),
+			0x19 => self.st(data),
+
+			_ => fail!("Unrecognized opcode.")
 		}
 	}
 

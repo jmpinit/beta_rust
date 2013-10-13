@@ -1,8 +1,10 @@
 use std::os;
 use std::io;
 use std::path;
+use beta::Beta;
 
-mod beta;
+pub mod beta;
+pub mod mem;
 
 fn load(filename: ~str) -> ~[u8] {
 	let read_result: Result<@Reader, ~str>;
@@ -22,14 +24,7 @@ fn main() {
 	
 	if args.len() == 2 {
 		// make a beta
-		let mut b = ~beta::Beta {
-			halted: false,
-			pc: 0u32,
-			register: [0u32, ..31],
-			mem: beta::Mem {
-				data: [0u8, ..4*1024]
-			}
-		};
+		let mut b = Beta::new(4*1024);
 
 		// get user file
 		let filename = args[1];
