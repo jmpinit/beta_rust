@@ -188,19 +188,19 @@ impl Beta {
 
 		self.write_reg(r_c as uint, self.pc + 4);
 		let displacement = (lit as i16 as u32)*4;
-		let target = self.pc + 4 + displacement;
+		let target = self.pc + displacement;
 
 		if(a == 0) { self.pc = target; }
 	}
 	
 	fn bne(&mut self, data: u32) {
-		print("bne ");
 		let (r_c, r_a, lit) = Beta::args_literal(data);
+		println(fmt!("bne %x, %x, %x", r_c as uint, r_a as uint, lit as uint));
 		let a = self.read_reg(r_a as uint);
 
 		self.write_reg(r_c as uint, self.pc + 4);
 		let displacement = (lit as i16 as u32)*4;
-		let target = self.pc + 4 + displacement;
+		let target = self.pc + displacement;
 
 		if(a != 0) { self.pc = target; }
 	}
@@ -250,7 +250,7 @@ impl Beta {
 		println(fmt!("jmp %x, %x", r_c as uint, r_a as uint));
 
 		self.write_reg(r_c as uint, self.pc + 4);
-		self.pc = self.read_reg(r_a as uint) & 0xFFFFFFFC;
+		self.pc = (self.read_reg(r_a as uint) -4) & 0xFFFFFFFC;
 	}
 	
 	fn ld(&mut self, data: u32) {
@@ -272,7 +272,7 @@ impl Beta {
 		println(fmt!("ldr %x, %x, %x", r_c as uint, r_a as uint, lit as uint));
 		let a = self.read_reg(r_a as uint);
 
-		let ea = (self.pc & 0x7FFFFFFF) + 4 + (lit as i16 as u32)*4;
+		let ea = (self.pc & 0x7FFFFFFF) + (lit as i16 as u32)*4;
 		let memval = self.mem.read_u32(ea);
 
 		self.write_reg(r_c as uint, memval);
