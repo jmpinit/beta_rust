@@ -1,4 +1,4 @@
-.include /mit/6.004/bsim/beta.uasm 
+.include ./beta.uasm 
 
 . = 0	| start assembling at location 0 
 	LD(input,r0)	| put argument in r0 
