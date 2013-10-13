@@ -99,12 +99,19 @@ impl Beta {
 		let op = instruction >> 26;
 		let data = instruction & 0x3FFFFFFF;
 
-		println(fmt!("op: 0x%x", op as uint));
+		//println(fmt!("op: 0x%x", op as uint));
 
+		print(fmt!("%x: ", instruction as uint));
 		decode_op!(op self data)
 
 		self.pc += 4;
 		//println(fmt!("tick. pc at %d", self.pc as int));
+	}
+
+	pub fn dump_registers(&self) {
+		for i in range(0, self.register.len()) {
+			println(fmt!("r%d = %x", i as int, self.register[i] as uint));
+		}
 	}
 
 	fn dump(&self) {
@@ -139,39 +146,44 @@ impl Beta {
 
 	fn exec_op(&mut self, data: u32, exp: &fn(a: u32, b: u32) -> u32) {
 		let (r_c, r_a, r_b) = Beta::args(data);
+		println(fmt!("%x, %x, %x", r_c as uint, r_a as uint, r_b as uint));
 		let a = self.read_reg(r_a as uint);
 		let b = self.read_reg(r_b as uint);
 		self.write_reg(r_c as uint, exp(a, b));
-		println(fmt!("fn \"%?\"", exp));
 	}
 
 	fn exec_op_lit(&mut self, data: u32, exp: &fn(a: u32, b: u32) -> u32) {
 		let (r_c, r_a, lit) = Beta::args_literal(data);
+		println(fmt!("%x, %x, %x", r_c as uint, r_a as uint, lit as uint));
 		let a = self.read_reg(r_a as uint);
 		self.write_reg(r_c as uint, exp(a, lit));
-		println(fmt!("fn \"%?\"", exp));
 	}
 
 	/* INSTRUCTION SET */
 
 	fn add(&mut self, data: u32) {
+		print("add ");
 		self.exec_op(data, |a, b| a + b);
 	}
 	
 	fn addc(&mut self, data: u32) {
+		print("addc ");
 		self.exec_op_lit(data, |a, b| a + b);
 	}
 	
 	fn and(&mut self, data: u32) {
+		print("and ");
 		self.exec_op(data, |a, b| a & b);
 	}
 
 	fn andc(&mut self, data: u32) {
+		print("andc ");
 		self.exec_op_lit(data, |a, b| a & b);
 	}
 	
 	fn beq(&mut self, data: u32) {
 		let (r_c, r_a, lit) = Beta::args_literal(data);
+		println(fmt!("beq %x, %x, %x", r_c as uint, r_a as uint, lit as uint));
 		let a = self.read_reg(r_a as uint);
 
 		self.write_reg(r_c as uint, self.pc + 4);
@@ -182,6 +194,7 @@ impl Beta {
 	}
 	
 	fn bne(&mut self, data: u32) {
+		print("bne ");
 		let (r_c, r_a, lit) = Beta::args_literal(data);
 		let a = self.read_reg(r_a as uint);
 
@@ -193,39 +206,48 @@ impl Beta {
 	}
 	
 	fn cmpeq(&mut self, data: u32) {
+		print("cmpeq ");
 		self.exec_op(data, |a, b| if(a == b) {1} else {0});
 	}
 	
 	fn cmpeqc(&mut self, data: u32) {
+		print("cmpeqc ");
 		self.exec_op_lit(data, |a, b| if(a == b) {1} else {0});
 	}
 	
 	fn cmple(&mut self, data: u32) {
+		print("cmple ");
 		self.exec_op(data, |a, b| if(a <= b) {1} else {0});
 	}
 	
 	fn cmplec(&mut self, data: u32) {
+		print("cmplec ");
 		self.exec_op_lit(data, |a, b| if(a <= b) {1} else {0});
 	}
 	
 	fn cmplt(&mut self, data: u32) {
+		print("cmplt ");
 		self.exec_op(data, |a, b| if(a < b) {1} else {0});
 	}
 	
 	fn cmpltc(&mut self, data: u32) {
+		print("cmpltc ");
 		self.exec_op_lit(data, |a, b| if(a < b) {1} else {0});
 	}
 	
 	fn div(&mut self, data: u32) {
+		print("div ");
 		self.exec_op(data, |a, b| a / b);
 	}
 	
 	fn divc(&mut self, data: u32) {
+		print("divc ");
 		self.exec_op_lit(data, |a, b| a / b);
 	}
 	
 	fn jmp(&mut self, data: u32) {
 		let (r_c, r_a, _lit) = Beta::args_literal(data);
+		println(fmt!("jmp %x, %x", r_c as uint, r_a as uint));
 
 		self.write_reg(r_c as uint, self.pc + 4);
 		self.pc = self.read_reg(r_a as uint) & 0xFFFFFFFC;
@@ -233,6 +255,9 @@ impl Beta {
 	
 	fn ld(&mut self, data: u32) {
 		let (r_c, r_a, lit) = Beta::args_literal(data);
+
+		println(fmt!("ld %x, %x, %x", r_c as uint, r_a as uint, lit as uint));
+
 		let a = self.read_reg(r_a as uint);
 
 		let ea = a + (lit as i16 as u32);
@@ -242,7 +267,9 @@ impl Beta {
 	}
 	
 	fn ldr(&mut self, data: u32) {
+		print("ldr ");
 		let (r_c, r_a, lit) = Beta::args_literal(data);
+		println(fmt!("ldr %x, %x, %x", r_c as uint, r_a as uint, lit as uint));
 		let a = self.read_reg(r_a as uint);
 
 		let ea = (self.pc & 0x7FFFFFFF) + 4 + (lit as i16 as u32)*4;
@@ -254,54 +281,67 @@ impl Beta {
 	}
 	
 	fn mul(&mut self, data: u32) {
+		print("mul ");
 		self.exec_op(data, |a, b| a*b)
 	}
 	
 	fn mulc(&mut self, data: u32) {
+		print("mulc ");
 		self.exec_op_lit(data, |a, b| a*b)
 	}
 	
 	fn or(&mut self, data: u32) {
+		print("or ");
 		self.exec_op(data, |a, b| a|b)
 	}
 	
 	fn orc(&mut self, data: u32) {
+		print("orc ");
 		self.exec_op_lit(data, |a, b| a|b)
 	}
 	
 	fn shl(&mut self, data: u32) {
+		print("shl ");
 		self.exec_op(data, |a, b| a << b)
 	}
 	
 	fn shlc(&mut self, data: u32) {
+		print("shlc ");
 		self.exec_op_lit(data, |a, b| a << b)
 	}
 	
 	fn shr(&mut self, data: u32) {
+		print("shr ");
 		self.exec_op(data, |a, b| a >> b)
 	}
 	
 	fn shrc(&mut self, data: u32) {
+		print("shrc ");
 		self.exec_op_lit(data, |a, b| a >> b)
 	}
 	
 	fn sra(&mut self, data: u32) {
+		print("sra ");
 		self.exec_op(data, |a, b| ((a as i32) >> b) as u32)
 	}
 	
 	fn srac(&mut self, data: u32) {
+		print("srac ");
 		self.exec_op_lit(data, |a, b| ((a as i32) >> b) as u32)
 	}
 	
 	fn sub(&mut self, data: u32) {
+		print("sub ");
 		self.exec_op(data, |a, b| a - b)
 	}
 	
 	fn subc(&mut self, data: u32) {
+		print("subc ");
 		self.exec_op_lit(data, |a, b| a - b)
 	}
 	
 	fn st(&mut self, data: u32) {
+		print("st ");
 		let (r_c, r_a, lit) = Beta::args_literal(data);
 		let a = self.read_reg(r_a as uint);
 		let c = self.read_reg(r_c as uint);
@@ -312,18 +352,22 @@ impl Beta {
 	}
 	
 	fn xor(&mut self, data: u32) {
+		print("xor ");
 		self.exec_op(data, |a, b| a^b);
 	}
 	
 	fn xorc(&mut self, data: u32) {
+		print("xorc ");
 		self.exec_op_lit(data, |a, b| a^b);
 	}
 	
 	fn xnor(&mut self, data: u32) {
+		print("xnor ");
 		self.exec_op(data, |a, b| !(a^b));
 	}
 	
 	fn xnorc(&mut self, data: u32) {
+		print("xnorc ");
 		self.exec_op_lit(data, |a, b| !(a^b));
 	}
 }
